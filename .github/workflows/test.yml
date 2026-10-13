@@ -1,0 +1,32 @@
+name: PostgreSQL integration tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: interntrack
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: interntrack_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U interntrack -d interntrack_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://interntrack:ci-only-password@localhost:5432/interntrack_test
+      TEST_DATABASE_URL: postgresql+psycopg://interntrack:ci-only-password@localhost:5432/interntrack_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r requirements-lock.txt
+      - run: alembic upgrade head
+      - run: alembic check
+      - run: pytest -q
+      - run: node --check app/static/app.js

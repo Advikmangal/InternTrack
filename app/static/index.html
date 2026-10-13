@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f0e6" />
+    <title>InternTrack — Your next chapter</title>
+    <link rel="icon" type="image/png" href="/static/brand/interntrack-logo.png" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script defer src="/static/vendor/chart.umd.js"></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <div id="auth" class="auth-layout" hidden>
+      <section class="auth-story">
+        <div class="brand">
+          <img class="brand-logo" src="/static/brand/interntrack-logo.png" alt="" width="48" height="48" /> InternTrack
+        </div>
+        <div>
+          <div class="eyebrow">A FIELD GUIDE TO YOUR NEXT MOVE</div>
+          <h1>Make your<br />next move<br /><em>count.</em></h1>
+          <p>
+            From your first application to your next opportunity. Keep every
+            step in sight.
+          </p>
+          <div class="journey">
+            <span>Save</span><i>→</i><span>Apply</span><i>→</i
+            ><span>Interview</span><i>→</i><span>Celebrate</span>
+          </div>
+        </div>
+        <small>APPLICATIONS / INTERVIEWS / WHAT COMES NEXT</small>
+      </section>
+      <section class="auth-form-wrap">
+        <form id="auth-form">
+          <span class="eyebrow">WELCOME TO INTERNTRACK</span>
+          <h2 id="auth-title">Welcome back.</h2>
+          <p id="auth-subtitle" class="muted">
+            Log in to manage your internship applications.
+          </p>
+          <p id="session-notice" class="notice" role="status" hidden></p>
+          <label id="name-field" hidden
+            >Your name<input
+              name="name"
+              autocomplete="name"
+              maxlength="100" /></label
+          ><label
+            >Email address<input
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              maxlength="254"
+              placeholder="you@university.edu" /></label
+          ><label
+            >Password<input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              maxlength="128"
+              placeholder="Your password"
+          /></label>
+          <p id="auth-error" class="error" role="alert"></p>
+          <button class="primary wide" id="auth-submit">
+            Log in <span>↗</span>
+          </button>
+          <p class="auth-switch">
+            <span id="auth-question">New here?</span>
+            <button type="button" class="text-button" id="auth-toggle">
+              Create an account
+            </button>
+          </p>
+        </form>
+      </section>
+    </div>
+    <main id="recovery" tabindex="-1" hidden></main>
+    <div id="shell" hidden>
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#dashboard"
+          ><img class="brand-logo" src="/static/brand/interntrack-logo.png" alt="" width="48" height="48" /> InternTrack</a
+        >
+        <div class="side-label">YOUR WORKSPACE</div>
+        <nav aria-label="Main navigation">
+          <a href="#dashboard" data-page="dashboard"><span>01</span>Dashboard</a
+          ><a href="#applications" data-page="applications"
+            ><span>02</span>Applications</a
+          ><a href="#board" data-page="board"><span>03</span>Status board</a
+          ><a href="#interviews" data-page="interviews"
+            ><span>04</span>Interviews</a
+          ><a href="#followups" data-page="followups"
+            ><span>05</span>Follow-ups</a
+          ><a href="#resumes" data-page="resumes"><span>06</span>Résumés</a>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="encouragement">
+            <span>↗</span><strong>Small steps. Big futures.</strong>
+            <p>
+              Every application is progress.<br />Keep going — you’ve got this.
+            </p>
+          </div>
+          <a href="#settings" data-page="settings" class="settings-link"
+            >⚙ <span>Settings</span></a
+          >
+          <div class="profile">
+            <span id="avatar" class="avatar"></span>
+            <div>
+              <strong id="profile-name"></strong
+              ><small>Personal workspace</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <button
+            id="menu"
+            class="icon-button"
+            aria-label="Toggle navigation"
+            aria-expanded="false"
+          >
+            ☰</button
+          ><span id="breadcrumb">Workspace <span>/</span> Dashboard</span>
+          <div>
+            <span class="private-label">◉ Private workspace</span
+            ><button id="logout" class="text-button">Log out ↗</button>
+          </div>
+        </header>
+        <main id="main" tabindex="-1">
+          <p class="loading">Loading your workspace…</p>
+        </main>
+        <footer>Made for your next move. <span>InternTrack</span></footer>
+      </div>
+    </div>
+    <dialog id="modal">
+      <div class="modal-heading">
+        <h2 id="modal-title"></h2>
+        <button class="icon-button" id="close-modal" aria-label="Close dialog">
+          ×
+        </button>
+      </div>
+      <div id="modal-body"></div>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>
