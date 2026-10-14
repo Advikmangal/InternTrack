@@ -294,6 +294,7 @@ async function dashboard() {
       }
       Chart.defaults.font.family = '"Segoe UI", sans-serif';
       Chart.defaults.color = "#6c685f";
+      Chart.defaults.font.size = 13;
       charts.push(
         new Chart($("#activity-chart"), {
           type: "line",
@@ -535,7 +536,9 @@ async function board() {
   };
 }
 function interviewItem(i, companyName = i.company) {
-  return `<div class="mini-item"><span class="company-icon">◷</span><div class="grow"><strong>${esc(companyName)} · ${esc(i.title)}</strong><small>${moment(i.starts_at)} · ${esc(i.type)}</small><p class="notes">${esc(i.venue)}${i.notes ? "\n" + esc(i.notes) : ""}${i.outcome ? "\nOutcome: " + esc(i.outcome) : ""}</p><div class="row-actions"><button data-action="edit-interview" data-id="${i.id}">Edit</button><button data-action="delete-interview" data-id="${i.id}">Delete</button><a href="#application/${i.application_id}">Application ↗</a></div></div></div>`;
+  const date = new Date(i.starts_at);
+  const datePart = (options) => new Intl.DateTimeFormat(undefined, { ...options, timeZone: user.timezone }).format(date);
+  return `<div class="mini-item interview-row"><div class="interview-date" aria-hidden="true"><span>${esc(datePart({ month: "short" }))}</span><strong>${esc(datePart({ day: "numeric" }))}</strong><span>${esc(datePart({ weekday: "short" }))}</span></div><div class="grow"><strong>${esc(companyName)} · ${esc(i.title)}</strong><small>${moment(i.starts_at)} · ${esc(i.type)}</small><p class="notes">${esc(i.venue)}${i.notes ? "\n" + esc(i.notes) : ""}${i.outcome ? "\nOutcome: " + esc(i.outcome) : ""}</p><div class="row-actions"><button data-action="edit-interview" data-id="${i.id}">Edit</button><button data-action="delete-interview" data-id="${i.id}">Delete</button><a href="#application/${i.application_id}">Application ↗</a></div></div></div>`;
 }
 async function interviews(params) {
   const list = await api(
@@ -548,7 +551,7 @@ async function interviews(params) {
         "Manage interview dates, preparation notes, and feedback.",
         `<button class="primary" data-action="new-interview">＋ Schedule interview</button>`,
       ) +
-      `<div class="actions section-intro"><a href="#interviews?upcoming=1">Upcoming</a><span>·</span><a href="#interviews">All interviews</a><span>· Times shown in ${esc(user.timezone)}</span></div><section class="panel">${list.map((i) => interviewItem(i)).join("") || empty("No interviews scheduled", "Schedule an interview and prepare for your next step.")}</section>`,
+      `<div class="view-switch"><a href="#interviews?upcoming=1" ${params.has("upcoming") ? 'aria-current="page"' : ""}>Upcoming</a><a href="#interviews" ${!params.has("upcoming") ? 'aria-current="page"' : ""}>All interviews</a><span>Times shown in ${esc(user.timezone)}</span></div><section class="panel">${list.map((i) => interviewItem(i)).join("") || empty("No interviews scheduled", "Schedule an interview and prepare for your next step.")}</section>`,
   };
 }
 async function applicationOptions() {
@@ -597,7 +600,7 @@ async function interviewForm(id, appId) {
   );
 }
 function followupItem(f, companyName = f.company) {
-  return `<div class="mini-item"><span class="company-icon">⚑</span><div class="grow"><strong>${esc(companyName)}</strong><small>${day(f.due_date)} · ${f.completed_at ? "Completed" : f.bucket || "Pending"}</small></div><div class="row-actions">${!f.completed_at ? `<button data-action="complete-followup" data-id="${f.id}">Complete</button><button data-action="edit-followup" data-id="${f.id}" data-date="${f.due_date}">Edit</button>` : '<span class="badge Offer">Done</span>'}<button data-action="delete-followup" data-id="${f.id}">Delete</button></div></div>`;
+  return `<div class="mini-item followup-row"><span class="company-icon">⚑</span><div class="grow"><strong>${esc(companyName)}</strong><small>${day(f.due_date)} · ${f.completed_at ? "Completed" : f.bucket || "Pending"}</small></div><div class="row-actions">${!f.completed_at ? `<button data-action="complete-followup" data-id="${f.id}">Complete</button><button data-action="edit-followup" data-id="${f.id}" data-date="${f.due_date}">Edit</button>` : '<span class="badge Offer">Done</span>'}<button data-action="delete-followup" data-id="${f.id}">Delete</button></div></div>`;
 }
 async function followups() {
   const list = await api("/follow-ups");
@@ -611,12 +614,12 @@ async function followups() {
       ["overdue", "today", "upcoming", "completed"]
         .map(
           (b) =>
-            `<h2 class="subheading">${b} · ${list.filter((f) => f.bucket === b).length}</h2><section class="panel">${
+            `<section class="followup-group" data-bucket="${b}"><h2 class="subheading">${b === "today" ? "Due today" : b} · ${list.filter((f) => f.bucket === b).length}</h2><div class="panel">${
               list
                 .filter((f) => f.bucket === b)
                 .map((f) => followupItem(f))
                 .join("") || `<p class="muted">${b === "today" ? "No follow-ups due today." : `No ${b} follow-ups.`}</p>`
-            }</section>`,
+            }</div></section>`,
         )
         .join(""),
   };

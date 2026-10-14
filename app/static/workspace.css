@@ -1,0 +1,148 @@
+/* Workspace typography and task layouts. Authentication keeps its existing design. */
+#shell { font-size: 16px; line-height: 1.5; }
+#shell .sidebar, #shell .topbar, #shell footer { padding-left: max(24px, calc((100vw - 1360px) / 2)); padding-right: max(24px, calc((100vw - 1360px) / 2)); }
+#shell .sidebar { padding-top: 22px; }
+#shell .sidebar nav { gap: 30px; overflow: visible; margin-top: 22px; }
+#shell nav a { font-size: 15px; padding: 16px 0; }
+#shell nav a > span { font-size: 12px; }
+#shell .settings-link, #shell .profile strong { font-size: 14px; }
+#shell .profile small { font-size: 12px; }
+#shell .topbar { height: 54px; font-size: 13px; }
+#shell .private-label { font-size: 12px; }
+#shell main { max-width: 1408px; padding: 32px 24px 64px; }
+#shell .page-heading { align-items: flex-start; gap: 24px; margin-bottom: 32px; }
+#shell h1 { font-size: clamp(34px, 3.5vw, 48px); line-height: 1.15; letter-spacing: -1.5px; overflow-wrap: anywhere; }
+#shell .page-heading .actions { padding-top: 22px; }
+#shell .page-heading p, #shell .section-intro { font-size: 16px; line-height: 1.6; }
+#shell .eyebrow, #shell .date-label, #shell .subheading { font-size: 12px; letter-spacing: 1.2px; }
+#shell .date-label { margin-bottom: 16px; }
+#shell .panel-heading h2 { font-size: 27px; line-height: 1.2; }
+#shell .panel-heading { align-items: center; flex-wrap: wrap; }
+#shell .panel-heading a, #shell .panel-heading small { font-size: 14px; }
+#shell button, #shell .text-button, #modal button { font-size: 14px; min-height: 42px; }
+#shell small { font-size: 14px; }
+#shell .metrics { margin-bottom: 32px; }
+#shell .metric { padding: 22px; }
+#shell .metric:first-child { padding-left: 0; }
+#shell .metric-label { font: 14px/1.4 "Segoe UI", sans-serif; letter-spacing: 0; text-transform: none; padding-right: 10px; }
+#shell .metric strong { font-size: 48px; letter-spacing: -2px; }
+#shell .metric small { font-size: 13px; display: block; }
+#shell .metric-icon { display: none; }
+#shell .grid-bottom { grid-template-columns: minmax(0, 1.65fr) minmax(310px, 1fr); gap: 32px; }
+#shell .grid-charts { grid-template-columns: minmax(0, 1.35fr) minmax(310px, 1fr); gap: 32px; }
+#shell .chart-wrap { height: 260px; }
+#shell .chart-data { font-size: 14px; }
+#shell .mini-item { padding: 20px 0; gap: 16px; align-items: flex-start; }
+#shell .mini-item strong { font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+#shell .mini-item small { font-size: 14px; line-height: 1.6; }
+#shell .mini-item .grow { min-width: 0; }
+#shell .company-icon { width: 42px; height: 42px; font-size: 14px; }
+#shell table { font-size: 15px; min-width: 560px; }
+#shell th { font-size: 12px; padding: 16px 14px; }
+#shell td { padding: 20px 14px; }
+#shell td:first-child, #shell th:first-child { padding-left: 0; }
+#shell .company-cell strong { font-size: 16px; }
+#shell .company-cell small { font-size: 14px; }
+#shell .badge { font: 13px/1.5 "Segoe UI", sans-serif; }
+#shell .empty { padding: 24px 0; font-size: 15px; }
+#shell .empty strong { font-size: 25px; }
+#shell label, #modal label { font-size: 14px; line-height: 1.5; }
+#shell input, #shell select, #shell textarea, #modal input, #modal select, #modal textarea { font-size: 16px; min-height: 46px; padding: 11px 12px; }
+#shell .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 22px 0; }
+#shell .filters label { min-width: 0; font-size: 13px; }
+#shell .filters .search { grid-column: span 2; }
+#shell .filters > button, #shell .filters > a { align-self: end; text-align: center; }
+#shell .pager { font-size: 14px; }
+#shell .detail-top { margin-bottom: 0; align-items: flex-start; }
+#shell .detail-grid { grid-template-columns: minmax(0, 1fr) 290px; gap: 44px; align-items: start; }
+#shell .detail-grid > .stack { border: 0; padding: 0; gap: 32px; }
+#shell .detail-grid > .panel { position: sticky; top: 24px; border-top: 3px solid var(--ink); }
+#shell .facts { gap: 24px 32px; }
+#shell .fact, #shell .notes { font-size: 16px; line-height: 1.65; }
+#shell .fact small { font-size: 13px; margin-bottom: 6px; }
+#shell .history { margin-top: 28px; }
+#shell .history li { font-size: 14px; padding-bottom: 28px; }
+#shell .history small { font-size: 13px; }
+#shell .attachment-actions { gap: 16px; }
+#shell .attachment-actions .text-button { font-size: 14px; }
+#shell .board { gap: 24px; scroll-snap-type: x proximity; }
+#shell .board-column { min-width: 290px; scroll-snap-align: start; }
+#shell .board-column h2 { font-size: 16px; padding: 5px 0; }
+#shell .board-card h3 { font-size: 18px; }
+#shell .board-card p, #shell .board-count, #shell .board-more { font-size: 14px; }
+#shell .board-card select { font-size: 15px; }
+#shell .board-card { padding: 24px 0; }
+#shell .row-actions { flex-wrap: wrap; align-items: center; gap: 12px; }
+#shell .row-actions button { padding: 8px 12px; font-size: 14px; }
+#shell .row-actions a { font-size: 14px; padding: 8px 0; }
+#shell .interview-row { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 24px; }
+#shell .interview-date { text-align: center; border-top: 3px solid var(--teal); padding-top: 10px; color: var(--teal); }
+#shell .interview-date span { display: block; font: 12px/1.5 Consolas, monospace; text-transform: uppercase; }
+#shell .interview-date strong { display: block; font: 34px/1.2 Georgia, serif; }
+#shell .interview-row .notes { margin: 12px 0; }
+#shell .interview-row .notes:empty { display: none; }
+#shell .view-switch { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+#shell .view-switch a { color: var(--muted); padding: 12px 0; border-bottom: 3px solid transparent; }
+#shell .view-switch a[aria-current="page"] { color: var(--teal); border-color: var(--teal); font-weight: 600; }
+#shell .view-switch span { margin-left: auto; font-size: 13px; color: var(--muted); }
+#shell .followup-group { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 32px; border-top: 1px solid var(--line); padding: 24px 0; }
+#shell .followup-group .subheading { margin: 0; padding-top: 16px; font: 23px/1.3 Georgia, serif; text-transform: capitalize; letter-spacing: 0; }
+#shell .followup-group[data-bucket="overdue"] .subheading { color: var(--red); }
+#shell .followup-group > .panel { border: 0; padding: 0; }
+#shell .followup-group .muted { margin: 16px 0; font-size: 15px; }
+#shell .resume-card { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 24px; padding: 28px 0; }
+#shell .resume-card h2 { font-size: 25px; margin-bottom: 8px; overflow-wrap: anywhere; }
+#shell .resume-card p { font-size: 14px; margin: 0; }
+#shell .resume-card .actions { margin: 0; }
+#shell .resume-card .pdf { font-size: 13px; }
+#shell .settings-form { max-width: 680px; }
+#shell .form-hint, #modal .form-hint { font-size: 14px; }
+#shell .notice, #shell .error, #modal .error { font-size: 14px; }
+#shell footer { font-size: 12px; }
+#modal { width: min(820px, 94vw); padding: 28px; }
+#modal .form-grid { gap: 4px 24px; }
+#modal .form-actions { position: sticky; bottom: -28px; background: var(--bg); padding: 20px 0; }
+@media (max-width: 1000px) {
+  #shell .sidebar nav { gap: 20px; justify-content: space-between; }
+  #shell nav a { font-size: 14px; }
+  #shell nav a > span { display: none; }
+  #shell .grid-bottom, #shell .grid-charts { grid-template-columns: 1fr; }
+  #shell .grid-bottom > .stack { grid-template-columns: repeat(2, minmax(0, 1fr)); border: 0; padding: 0; gap: 28px; }
+  #shell .detail-grid { grid-template-columns: minmax(0, 1fr) 240px; gap: 28px; }
+}
+@media (max-width: 760px) {
+  #shell .sidebar, #shell .topbar, #shell footer { padding-left: 20px; padding-right: 20px; }
+  #shell main { padding: 24px 20px 48px; }
+  #shell .sidebar nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 16px; }
+  #shell nav a { justify-content: center; white-space: normal; text-align: center; padding: 12px 0; }
+  #shell .settings-link span { display: inline; }
+  #shell .profile { display: none; }
+  #shell .page-heading { flex-direction: column; gap: 16px; }
+  #shell .page-heading .actions { padding: 0; }
+  #shell .page-heading h1 { font-size: 36px; }
+  #shell .grid-bottom > .stack, #shell .detail-grid { grid-template-columns: 1fr; }
+  #shell .detail-grid > .panel { position: static; }
+  #shell .metric { padding: 18px 14px; }
+  #shell .metric:nth-child(3) { padding-left: 0; }
+  #shell .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #shell .filters .search { grid-column: 1 / -1; }
+  #shell .followup-group { grid-template-columns: 1fr; gap: 8px; }
+  #shell .followup-group .subheading { padding: 0; }
+  #shell .followup-row { flex-wrap: wrap; }
+  #shell .followup-row > .row-actions { width: 100%; padding-left: 58px; }
+  #shell .resume-card { grid-template-columns: 52px minmax(0, 1fr); gap: 16px; }
+  #shell .resume-card .actions { grid-column: 2; }
+  #shell .view-switch span { margin-left: 0; width: 100%; padding-bottom: 12px; }
+  #shell .facts { gap: 22px 18px; }
+  #shell .interview-row { grid-template-columns: 52px minmax(0, 1fr); gap: 16px; }
+}
+@media (max-width: 420px) {
+  #shell .sidebar, #shell .topbar, #shell footer { padding-left: 16px; padding-right: 16px; }
+  #shell main { padding-left: 16px; padding-right: 16px; }
+  #shell .sidebar nav { gap: 0 8px; }
+  #shell .facts { grid-template-columns: 1fr; }
+  #shell .metric strong { font-size: 40px; }
+  #shell .metric-label { font-size: 13px; }
+  #modal { padding: 20px; }
+  #modal .form-actions { bottom: -20px; }
+}
