@@ -1,5 +1,5 @@
 from datetime import date, datetime, timezone
-from sqlalchemy import String, Text, ForeignKey, DateTime, Date, Index, CheckConstraint
+from sqlalchemy import String, Text, ForeignKey, DateTime, Date, Index, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from .database import Base
 
@@ -89,3 +89,41 @@ class FollowUp(Base):
     application_id: Mapped[int] = mapped_column(ForeignKey('applications.id', ondelete='CASCADE'), index=True)
     due_date: Mapped[date] = mapped_column(Date, index=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class GoogleAccount(Base):
+    __tablename__ = 'google_accounts'
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(255), unique=True)
+    email: Mapped[str] = mapped_column(String(254))
+    refresh_token: Mapped[str | None] = mapped_column(Text)
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sync_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    page_token: Mapped[str | None] = mapped_column(Text)
+
+
+class GoogleOAuthState(Base):
+    __tablename__ = 'google_oauth_states'
+    state_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    browser_hash: Mapped[str] = mapped_column(String(64))
+    verifier: Mapped[str] = mapped_column(String(128))
+    purpose: Mapped[str] = mapped_column(String(20))
+    session_hash: Mapped[str | None] = mapped_column(String(64))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class EmailCandidate(Base):
+    __tablename__ = 'email_candidates'
+    __table_args__ = (UniqueConstraint('user_id', 'message_id', name='uq_email_user_message'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), index=True)
+    message_id: Mapped[str] = mapped_column(String(255))
+    subject: Mapped[str] = mapped_column(String(500))
+    sender: Mapped[str] = mapped_column(String(500))
+    snippet: Mapped[str] = mapped_column(Text)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    suggested_status: Mapped[str] = mapped_column(String(20), default='Applied')
+    company: Mapped[str] = mapped_column(String(160), default='')
+    role: Mapped[str] = mapped_column(String(160), default='')
+    reviewed: Mapped[bool] = mapped_column(default=False)
+    application_id: Mapped[int | None] = mapped_column(ForeignKey('applications.id', ondelete='SET NULL'))

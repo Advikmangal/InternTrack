@@ -191,3 +191,87 @@ See `VERIFICATION.md` for checks actually completed in the build environment. Br
 This is a portfolio core application. There is no password reset/email verification, email delivery, drag-and-drop, malware scanning service, distributed rate limiter, or production monitoring. Session expiry is enforced on access; expired rows can be periodically deleted administratively. Large accounts load all records for dashboard aggregation and selection controls; add SQL aggregation and server-side autocomplete if you outgrow personal use. The board initially displays 20 cards per status with a link to the full paginated list. UI entry supports device-local interview times, not arbitrary organizer-timezone input conversion.
 
 Secure cookies require HTTPS configuration. Add proxy rate/body limits, backups, HTTPS, and operational monitoring before public deployment. Docker Compose is supplied but was not run in the build environment. No site was published.
+
+## Google sign-up, login, and Gmail sync
+
+The login screen now supports **Continue with Google**. The **Email sync** page connects
+Gmail separately with read-only permission. It finds application confirmations and
+recruitment updates from Indeed, LinkedIn, and other senders in the connected mailbox.
+It does not submit applications, send messages, access an Indeed account, or modify mail.
+
+### Setup
+
+1. Install the updated dependencies and migrate the database:
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+   .\.venv\Scripts\python.exe -m alembic upgrade head
+   ```
+2. In [Google Cloud Console](https://console.cloud.google.com/), create/select a project,
+   enable **Gmail API**, and configure Google Auth Platform branding, audience and data access.
+   For personal testing, add your Gmail address as a test user.
+3. Create an OAuth client of type **Web application**. Add an authorized redirect URI
+   exactly matching `GOOGLE_REDIRECT_URI`:
+   - Local: `http://localhost:8000/api/google/callback`
+   - Render: `https://interntrack-f05f.onrender.com/api/google/callback`
+4. Set these values in your local `.env` or hosting environment (never commit secrets):
+   ```dotenv
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   GOOGLE_REDIRECT_URI=http://localhost:8000/api/google/callback
+   GOOGLE_TOKEN_KEY=your-generated-fernet-key
+   ```
+   Generate the encryption key once and retain it across deployments:
+   ```powershell
+   .\.venv\Scripts\python.exe -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+   ```
+   Changing this key makes existing Gmail connections unreadable; reconnect those accounts.
+   In production set `COOKIE_SECURE=true` and include your HTTPS origin in `ALLOWED_ORIGINS`.
+   Open the app using the same host as the callback URI (localhost and 127.0.0.1 are different
+   cookie hosts). Restart after configuration changes.
+5. Choose **Continue with Google** to create an account or sign in. For an existing password
+   account, log in with its password first, then choose **Email sync > Connect Google + Gmail**
+   using the same email address. This explicitly links the Google identity to your account.
+6. Grant Gmail read access and use **Sync now**. New Google accounts can log in without
+   granting Gmail permission. Gmail is an optional, separate consent step.
+
+Google's `gmail.readonly` scope is restricted. Public distribution can require Google's
+verification and additional review depending on how data is handled. External apps in
+Testing can have short-lived refresh tokens; use **Reconnect Gmail** if access expires.
+See [OAuth web server setup](https://developers.google.com/identity/protocols/oauth2/web-server)
+and [Gmail scope requirements](https://developers.google.com/workspace/gmail/api/auth/scopes).
+
+### Sync behavior and limits
+
+- Initial search: the last 90 days, excluding Gmail Promotions and Social categories.
+- Each request handles up to 50 matching messages. Pagination is persisted, and **Sync now**
+  continues the next batch. Subsequent completed syncs overlap two days to catch delayed mail.
+- Sync runs on login and every five minutes while the app is open and visible. There is no
+  background worker or webhook: syncing does not run when the browser is closed. After a long
+  absence it resumes from the last completed sync.
+- English subject/snippet rules detect confirmations, assessments, interviews, offers and
+  rejections. This is heuristic, not an authoritative status or a universal email parser.
+  Messages without a recognized pattern, confirmations outside the search window, and
+  applications with no confirmation email will need manual entry.
+- Emails appear in a review queue. Confirm/edit company, role, status and original application
+  date, then create an application or choose an existing one to update its status. Existing
+  dates are preserved. Status changes appear in the normal application history. All existing
+  applications are available in the selector, including beyond the first page.
+- Message IDs deduplicate repeated syncs, including dismissed messages. Duplicate application
+  company/role/date combinations are rejected with a prompt to select the existing record.
+- Gmail refresh tokens are encrypted at rest with Fernet; access tokens exist only during
+  a request. Tokens never reach frontend JavaScript. OAuth uses single-use expiring state,
+  an HTTP-only browser binding, PKCE, and a session binding when linking existing accounts.
+- Only sender, subject, snippet, received time and message ID are retained, scoped to the user.
+  Email text is rendered escaped; no message HTML, attachments, or external images are loaded.
+- **Disconnect Gmail** deletes local tokens and the email review queue, retaining imported
+  applications and Google login. Remove the app's permission in your Google account if you
+  also want to revoke Google's grant. Reconnecting can surface previously reviewed messages
+  again because disconnect intentionally erases that history.
+
+### Verification
+
+`tests/test_google.py` exercises OAuth signup/login, explicit account linking, wrong accounts,
+CSRF and state/session binding, permission denial, classification, pagination, deduplication,
+private review queues, import/status history, disconnect and failed-sync cursor behavior.
+Google HTTP calls are mocked; the encryption test uses the real cryptography library.
+A real Google account/consent smoke test is still required after configuring credentials.

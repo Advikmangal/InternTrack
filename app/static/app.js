@@ -138,6 +138,7 @@ function showShell() {
   $("#shell").hidden = false;
   $("#profile-name").textContent = user.name;
   $("#avatar").textContent = initials(user.name);
+  void autoEmailSync();
 }
 $("#auth-toggle").onclick = () => {
   registerMode = !registerMode;
@@ -886,7 +887,7 @@ function errorPage(status, missingRecord = false) {
   return `<section class="error-page" aria-labelledby="error-title"><div class="error-code" aria-hidden="true">${code}</div><div class="error-copy"><div class="eyebrow">${label}</div><h1 id="error-title">${title}</h1><p>${message}</p><div class="actions">${status !== 404 && status !== 403 ? '<button class="primary" data-retry>Try again ↗</button>' : ''}<a class="${status === 404 || status === 403 ? 'primary recovery-link' : 'text-button'}" href="/#dashboard">Go to dashboard ↗</a><a class="text-button" href="/#applications">View applications</a></div><p class="error-footnote">${status === 404 ? "Your next opportunity is still ahead." : "Your saved records remain in your workspace."}</p></div></section>`;
 }
 function validRoute(path) {
-  return /^(dashboard|applications|board|interviews|followups|resumes|settings)$/.test(path) || /^application\/[1-9]\d*$/.test(path);
+  return /^(dashboard|applications|board|interviews|followups|resumes|settings|emails)$/.test(path) || /^application\/[1-9]\d*$/.test(path);
 }
 async function route() {
   if (!user) return;
@@ -914,6 +915,7 @@ async function route() {
     followups: "Follow-ups",
     resumes: "Résumés",
     settings: "Settings",
+    emails: "Email sync",
   };
   $("#breadcrumb").innerHTML =
     `Workspace <span>/</span> ${validRoute(path) ? titles[page] : "Page not found"}`;
@@ -937,6 +939,7 @@ async function route() {
       followups,
       resumes,
       settings,
+      emails,
     }[page];
     const result =
       page === "application"
@@ -977,3 +980,132 @@ async function bootstrap() {
   }
 }
 bootstrap();
+
+/* Google login and Gmail review queue. Mail content is always escaped as text. */
+let emailSyncRunning = false;
+async function syncEmails(manual = false) {
+  if (!user || emailSyncRunning) return;
+  emailSyncRunning = true;
+  try {
+    const result = await api('/google/sync', { method: 'POST' });
+    if (manual || result.added) notify(`${result.added} new emails ready to review.${result.has_more ? ' More messages remain; sync again to continue.' : ''}`);
+    // Avoid replacing a form the user is currently reviewing.
+    if (location.hash.startsWith('#emails') && !modal.open) await route();
+  } catch (error) {
+    if (manual) notify(error.message);
+  } finally {
+    emailSyncRunning = false;
+  }
+}
+async function autoEmailSync() {
+  if (!user || document.hidden || emailSyncRunning) return;
+  try {
+    const connection = await api('/google/status');
+    if (connection.connected) await syncEmails();
+  } catch { /* Manual sync displays actionable connection errors. */ }
+}
+setInterval(autoEmailSync, 5 * 60 * 1000);
+
+async function emails(params = new URLSearchParams()) {
+  const page = Math.max(1, Number(params.get('page')) || 1);
+  const [connection, queue] = await Promise.all([api('/google/status'), api('/google/emails?page=' + page)]);
+  return {
+    html: heading('Email sync', 'Turn application emails into a clear next step.') + `
+      <section class="panel email-connection">
+        <h2>${connection.connected ? 'Gmail connected' : 'Connect your Gmail'}</h2>
+        <p>${connection.connected ? esc(connection.email) : 'Connect the Google account matching your InternTrack email. This also enables Google login for an existing password account.'}</p>
+        <p class="muted">Read-only access finds application confirmations and recruitment updates from Indeed, LinkedIn and other senders. Review each suggestion before saving it. No email is sent or modified.</p>
+        <p class="muted">The first sync checks the past 90 days, 50 messages at a time. Sync runs every five minutes while InternTrack is open. Email formats vary; some messages may not be detected.</p>
+        ${connection.last_synced_at ? `<p>Last completed sync: ${esc(moment(connection.last_synced_at))}</p>` : ''}
+        ${connection.has_more ? '<p class="notice">More messages remain. Select Sync now to fetch the next batch.</p>' : ''}
+        ${!connection.gmail_configured ? '<p class="notice">Google integration needs server configuration. See the Google setup section in the project README.</p>' : ''}
+        <div class="actions">
+          <button id="connect-gmail" ${!connection.gmail_configured ? 'disabled' : ''}>${connection.connected ? 'Reconnect Gmail' : 'Connect Google + Gmail'}</button>
+          ${connection.connected ? '<button id="sync-gmail" class="primary">Sync now</button><button id="disconnect-gmail">Disconnect Gmail</button>' : ''}
+        </div>
+      </section>
+      <section class="panel email-queue"><h2>Ready to review (${queue.total})</h2>
+        ${queue.items.length ? queue.items.map(item => `<article class="email-item">
+          <div>${badge(item.suggested_status)} <span class="muted">${esc(moment(item.received_at))}</span></div>
+          <h3>${esc(item.subject)}</h3><p class="muted">${esc(item.sender)}</p><p>${esc(item.snippet)}</p>
+          <div class="actions"><button class="primary" data-email-review="${item.id}">Review application</button><button data-email-dismiss="${item.id}">Dismiss</button></div>
+        </article>`).join('') : '<p class="muted">No emails waiting for review. Connect Gmail and sync to find application updates.</p>'}
+        <div class="actions">${page > 1 ? `<a href="#emails?page=${page-1}">Previous</a>` : ''}${page * 25 < queue.total ? `<a href="#emails?page=${page+1}">Next</a>` : ''}</div>
+      </section>`,
+    after: () => {
+      $('#connect-gmail').onclick = async (event) => {
+        event.target.disabled = true;
+        try { const result = await api('/google/connect', { method: 'POST' }); location.assign(result.url); }
+        catch (error) { notify(error.message); event.target.disabled = false; }
+      };
+      $('#sync-gmail')?.addEventListener('click', async (event) => {
+        event.target.disabled = true;
+        await syncEmails(true);
+        event.target.disabled = false;
+      });
+      $('#disconnect-gmail')?.addEventListener('click', () => {
+        dialog('Disconnect Gmail?', `<form><p>This stops email syncing and deletes the email review queue. Saved applications and Google login remain available. You can also remove access in your Google account permissions.</p>${formEnd('Disconnect Gmail')}`, async () => {
+          await api('/google/disconnect', { method: 'POST' });
+          notify('Gmail disconnected.');
+        });
+      });
+      document.querySelectorAll('[data-email-review]').forEach(button => button.onclick = async () => {
+        button.disabled = true;
+        try { await reviewEmail(queue.items.find(item => item.id === Number(button.dataset.emailReview))); }
+        catch (error) { notify(error.message); }
+        finally { button.disabled = false; }
+      });
+      document.querySelectorAll('[data-email-dismiss]').forEach(button => button.onclick = async () => {
+        button.disabled = true;
+        try { await api(`/google/emails/${button.dataset.emailDismiss}/dismiss`, { method: 'POST' }); await route(); }
+        catch (error) { notify(error.message); button.disabled = false; }
+      });
+    },
+  };
+}
+async function reviewEmail(item) {
+  // Fetch all pages so existing records beyond the first hundred can be selected.
+  const apps = [];
+  let page = 1, result;
+  do {
+    result = await api(`/applications?page_size=100&page=${page++}`);
+    apps.push(...result.items);
+  } while (apps.length < result.total);
+  dialog('Review email suggestion', `<form>
+    <p>${esc(item.subject)}</p><p class="muted">Suggestions can be wrong. Check the company, role, date and status before saving.</p>
+    <label>Save to<select name="application_id" id="email-target"><option value="">Create a new application</option>${apps.map(a => `<option value="${a.id}">${esc(a.company)} — ${esc(a.role)} (${esc(a.status)})</option>`).join('')}</select></label>
+    <div id="email-new-fields">${field('Company *', 'company', item.company, 'text', 'required maxlength="160"')}${field('Role *', 'role', item.role, 'text', 'required maxlength="160"')}</div>
+    <label>Status<select name="status">${options(statuses, item.suggested_status)}</select></label>
+    ${field('Application date (check against the original application)', 'application_date', item.received_at.slice(0,10), 'date', 'required')}
+    ${formEnd('Save application')}`, async (fd) => {
+      const data = Object.fromEntries(fd);
+      data.application_id = data.application_id ? Number(data.application_id) : null;
+      await api(`/google/emails/${item.id}/import`, { method: 'POST', body: data });
+      notify('Application saved.');
+    });
+  $('#email-target').onchange = (event) => {
+    const existing = Boolean(event.target.value);
+    $('#email-new-fields').hidden = existing;
+    $('#email-new-fields').querySelectorAll('input').forEach(input => { input.disabled = existing; input.required = !existing; });
+    const selected = apps.find(a => a.id === Number(event.target.value));
+    if (selected?.application_date) $('#modal-body [name=application_date]').value = selected.application_date;
+  };
+}
+const googleResult = new URLSearchParams(location.search).get('google');
+if (googleResult) {
+  const messages = {
+    not_configured: 'Google sign-in is not available yet. Use email and password until setup is complete.',
+    signed_in: 'Signed in with Google. Connect Gmail to sync application emails.',
+    connected: 'Gmail connected. Your application emails will appear here for review.',
+    cancelled: 'Google authorization was cancelled. You can try again.',
+    invalid_state: 'Google sign-in expired or was opened in a different browser. Please try again.',
+    link_required: 'This email already has an account. Log in with your password, then connect Google in Email sync.',
+    wrong_account: 'Choose the Google account with the same email as your InternTrack account.',
+    missing_permission: 'Gmail read permission was not granted. Connect again and allow email access.',
+    failed: 'Google connection failed. Check server configuration or try connecting again.',
+  };
+  const message = messages[googleResult] || messages.failed;
+  $('#auth-error').textContent = message;
+  notify(message);
+  history.replaceState(null, '', '/' + location.hash);
+}

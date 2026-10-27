@@ -30,3 +30,4 @@ jobs:
       - run: alembic check
       - run: pytest -q
       - run: node --check app/static/app.js
+      - run: node --test tests/test_frontend_api.cjs

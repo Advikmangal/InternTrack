@@ -146,3 +146,12 @@
   #modal { padding: 20px; }
   #modal .form-actions { bottom: -20px; }
 }
+
+.google-signin { display: block; text-align: center; border: 1px solid var(--line, #ccc); border-radius: 8px; padding: 12px; margin: 18px 0 12px; font-weight: 600; text-decoration: none; color: inherit; background: #fff; }
+.google-signin:hover { background: #f4f0e6; }
+.email-connection, .email-queue { padding: 24px; margin-bottom: 22px; }
+.email-connection p { max-width: 850px; line-height: 1.6; }
+.email-item { padding: 22px 0; border-bottom: 1px solid var(--line, #ddd); overflow-wrap: anywhere; }
+.email-item h3 { margin: 12px 0 6px; }
+.email-item p { line-height: 1.6; }
+.email-item .actions, .email-connection .actions { flex-wrap: wrap; }

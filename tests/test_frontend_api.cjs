@@ -57,3 +57,38 @@ test('recovery screens offer appropriate actions', () => {
   assert.match(routeContext.errorPage(500), /data-retry/);
   assert.match(routeContext.errorPage(403), /ACCESS RESTRICTED/);
 });
+
+const emailSource = source.slice(source.indexOf('async function emails('), source.indexOf('const googleResult ='));
+const escSource = source.slice(source.indexOf('const esc ='), source.indexOf('const statuses ='));
+test('email review renders untrusted mail as escaped text and shows sync controls', async () => {
+  const context = vm.createContext({
+    URLSearchParams,
+    heading: (title) => `<h1>${title}</h1>`,
+    badge: () => '<span>Applied</span>',
+    moment: () => 'Oct 26',
+    api: async (url) => url === '/google/status'
+      ? { connected: true, gmail_configured: true, email: 'alice@example.com', has_more: true }
+      : { total: 1, items: [{ id: 1, subject: '<script>alert(1)</script>', sender: '<img onerror=alert(1)>', snippet: '<b>Application received</b>', suggested_status: 'Applied', received_at: '2026-10-26' }] },
+  });
+  vm.runInContext(escSource + emailSource, context);
+  const { html } = await context.emails();
+  assert.doesNotMatch(html, /<script>|<img|<b>Application/);
+  assert.match(html, /&lt;script&gt;/);
+  assert.match(html, /data-email-review="1"/);
+  assert.match(html, /id="sync-gmail"/);
+  assert.match(html, /More messages remain/);
+});
+
+test('email page explains configuration and disables connection when unavailable', async () => {
+  const context = vm.createContext({
+    URLSearchParams, heading: () => '',
+    api: async (url) => url === '/google/status'
+      ? { connected: false, gmail_configured: false }
+      : { total: 0, items: [] },
+  });
+  vm.runInContext(escSource + emailSource, context);
+  const { html } = await context.emails();
+  assert.match(html, /id="connect-gmail" disabled/);
+  assert.match(html, /No emails waiting for review/);
+  assert.doesNotMatch(html, /id="sync-gmail"/);
+});

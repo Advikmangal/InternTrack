@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from .config import settings
-from .routers import authentication, applications, planning, dashboard, resumes
+from .routers import authentication, applications, planning, dashboard, resumes, google
 
 app = FastAPI(title='InternTrack API', version='1.0.0', docs_url=None, redoc_url=None)
 static = Path(__file__).parent / 'static'
@@ -66,7 +66,7 @@ async def validation_error(request, exc):
     return JSONResponse({'error': 'Please check the highlighted values', 'details': details}, status_code=422)
 
 
-for router in (authentication.router, applications.router, planning.router, dashboard.router, resumes.router):
+for router in (authentication.router, applications.router, planning.router, dashboard.router, resumes.router, google.router):
     app.include_router(router)
 app.mount('/static', StaticFiles(directory=static), name='static')
 

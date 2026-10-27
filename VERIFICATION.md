@@ -27,3 +27,22 @@ The installed Starlette test client emitted one deprecation warning about its ht
 The initial PostgreSQL/client attempts failed across isolated tool sessions. Running PostgreSQL, migrations, and pytest within one execution session resolved that environment issue. No production database or existing account was used. Temporary databases and the sample preview account are outside the deliverable.
 
 Frontend forms and navigation were inspected against the API route definitions, and the JavaScript parser accepted the source. These checks do not replace a real browser interaction/accessibility/visual audit. Follow the README browser checklist before deployment.
+
+## Google / Gmail feature verification — 2026-10-26
+
+- 17 focused Python tests passed: database-level OAuth flows, email classification, sync,
+  pagination/deduplication, account isolation, imports/status history, disconnect,
+  deleted-message handling, encryption and refresh-token rotation.
+- 10 frontend tests passed, including escaping untrusted email text and disabled setup states.
+- JavaScript syntax and Python compilation passed.
+- On a temporary SQLite database: migration upgrade, downgrade to the previous revision,
+  re-upgrade, and `alembic check` passed (no schema drift). The user's database was not migrated.
+- Full HTTP regression/OAuth integration tests are included but could not run here: the
+  Windows sandbox stalls in `socket._fallback_socketpair` while FastAPI TestClient starts its
+  event loop. These require a normal local/CI environment. PostgreSQL validation remains for CI.
+- Dependency download was unavailable. The real encryption tests used the already-installed
+  cryptography 50.0.1 package from the local Python 3.12 installation, appended to the test
+  process import path. The project's virtual environment still needs the updated requirements
+  installed normally. No import-path workaround was added to application code.
+- Live Google authorization and Gmail API behavior have not been tested against an account;
+  follow README setup, configure credentials, and complete a consent/sync smoke test.
